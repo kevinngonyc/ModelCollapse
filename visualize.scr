@@ -1,0 +1,32 @@
+#!/bin/bash
+#SBATCH --partition cpu_short
+#SBATCH --nodes 1
+#SBATCH --ntasks-per-node 17
+#SBATCH --time 0-01:00:00
+#SBATCH --job-name visualize
+#SBATCH --output logs/visualize.log 
+
+module load miniconda3/gpu/4.9.2
+module load cuda/11.8
+
+source /gpfs/share/apps/miniconda3/gpu/4.9.2/etc/profile.d/conda.sh # line to include
+conda activate ModelCollapse
+
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 10 no_noise &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 10 input_0.01 &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 10 latent &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 10 gradient &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 10 synthetic_0.9 &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 10 synthetic_0.95 &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 10 synthetic_0.99 &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 20 no_noise &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 20 input_0.01 &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 20 latent &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 20 gradient &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 20 synthetic_0.9 &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 20 synthetic_0.95 &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single 20 synthetic_0.99 &
+srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init input_high_std log no_noise input_1 input_0.1 input_0.01 &
+srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init input_low_std linear no_noise input_0.001 input_0.0001 input_0.00001 &
+srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init synthetic linear no_noise synthetic_0.9 synthetic_0.95 synthetic_0.99 &
+wait

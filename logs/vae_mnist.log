@@ -1,14 +1,24 @@
-Runtime: 153.70910096168518
-Runtime: 154.03923273086548
-Runtime: 154.4195318222046
-srun: Step created for StepId=59605600.4
-srun: Step created for StepId=59605600.5
-srun: Step created for StepId=59605600.6
-Runtime: 280.1434142589569
-srun: Step created for StepId=59605600.7
-Runtime: 147.5251042842865
-Runtime: 148.1007375717163
-srun: Step created for StepId=59605600.8
-Runtime: 148.58224773406982
-Runtime: 144.81802225112915
-Runtime: 268.7098979949951
+Train Runtime: 127.02906346321106
+Train Runtime: 127.15649080276489
+Train Runtime: 130.26878905296326
+Runtime: 25.832923889160156
+Runtime: 25.92836046218872
+Runtime: 26.031341075897217
+Runtime: 26.092512607574463
+srun: Step created for StepId=59889766.7
+srun: Step created for StepId=59889766.8
+srun: Step created for StepId=59889766.9
+srun: Step created for StepId=59889766.10
+Runtime: 25.38385581970215
+srun: Step created for StepId=59889766.11
+Runtime: 32.88051795959473
+Runtime: 33.16071438789368
+Runtime: 33.706894874572754
+srun: Step created for StepId=59889766.12
+srun: Step created for StepId=59889766.13
+srun: Step created for StepId=59889766.14
+Runtime: 25.12725567817688
+Runtime: 24.732369422912598
+Runtime: 24.85334348678589
+Runtime: 24.987414836883545
+Submitted batch job 59889789
