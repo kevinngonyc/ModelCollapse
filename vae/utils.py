@@ -28,8 +28,8 @@ def combine_dataloader(tensor_a, dataset_b, size, batch_size, ab_ratio):
     dataset_c = ConcatDataset([dataset_a, dataset_b])
     return DataLoader(dataset_c, batch_size=batch_size, shuffle=True)
 
-def load_vae(path):
+def load_model(path):
     if os.path.isfile(path):
         return torch.load(path, weights_only=False)
     else:
-        raise Exception("Initialize the vae first with 'vae_init.py'")
+        raise Exception("Initialize the model first with 'train.py'")

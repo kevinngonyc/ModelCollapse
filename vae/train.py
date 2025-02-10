@@ -1,5 +1,5 @@
 import time
-from models import VariationalAutoencoder, NoisyLatentVariationalAutoencoder
+from models import VariationalAutoencoder, NoisyLatentVariationalAutoencoder, Discriminator
 from torchvision import datasets
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
@@ -9,6 +9,7 @@ import torch
 from config import TrainingParams, Paths
 import sys
 import os
+from torch.autograd import Variable
 
 
 def vae_loss(recon_x, x, mu, logvar):
@@ -72,6 +73,76 @@ def train_vae(vae, train_dataloader, grad_noise=False, ng_stdev=1, debug=False):
         if debug:
             print('Epoch [%d / %d] average reconstruction error: %f' % (epoch+1, TrainingParams.num_epochs, train_loss_avg[-1]))
 
+
+def train_vae_gan(vae, discrim, train_dataloader, debug=False):
+    criterion=torch.nn.BCELoss().to(device)
+    optim_E=torch.optim.RMSprop(vae.encoder.parameters(), lr=TrainingParams.learning_rate)
+    optim_D=torch.optim.RMSprop(vae.decoder.parameters(), lr=TrainingParams.learning_rate)
+    optim_Dis=torch.optim.RMSprop(discrim.parameters(), lr=TrainingParams.learning_rate*TrainingParams.alpha)
+
+    for epoch in range(TrainingParams.num_epochs):
+        if debug:
+            print(f"Epoch: {epoch}")
+        prior_loss_list,gan_loss_list,recon_loss_list=[],[],[]
+        dis_real_list,dis_fake_list,dis_prior_list=[],[],[]
+        for i, (data,_) in enumerate(train_dataloader, 0):
+            bs=data.size()[0]
+            
+            ones_label=Variable(torch.ones(bs,1)).to(device)
+            zeros_label=Variable(torch.zeros(bs,1)).to(device)
+            zeros_label1=Variable(torch.zeros(64,1)).to(device)
+            datav = Variable(data).to(device)
+            rec_enc, mean, logvar = vae(datav)
+            z_p = Variable(torch.randn(64,TrainingParams.latent_dims)).to(device)
+            x_p_tilda = vae.decoder(z_p)
+            
+            output = discrim(datav)[0]
+            errD_real = criterion(output, ones_label)
+            dis_real_list.append(errD_real.item())
+            output = discrim(rec_enc)[0]
+            errD_rec_enc = criterion(output, zeros_label)
+            dis_fake_list.append(errD_rec_enc.item())
+            output = discrim(x_p_tilda)[0]
+            errD_rec_noise = criterion(output, zeros_label1)
+            dis_prior_list.append(errD_rec_noise.item())
+            gan_loss = errD_real + errD_rec_enc + errD_rec_noise
+            gan_loss_list.append(gan_loss.item())
+            optim_Dis.zero_grad()
+            gan_loss.backward(retain_graph=True)
+            optim_Dis.step()
+            
+            
+            output = discrim(datav)[0]
+            errD_real = criterion(output, ones_label)
+            output = discrim(rec_enc)[0]
+            errD_rec_enc = criterion(output, zeros_label)
+            output = discrim(x_p_tilda)[0]
+            errD_rec_noise = criterion(output, zeros_label1)
+            gan_loss = errD_real + errD_rec_enc + errD_rec_noise
+            
+            
+            x_l_tilda = discrim(rec_enc)[1]
+            x_l = discrim(datav)[1]
+            rec_loss = ((x_l_tilda - x_l) ** 2).mean()
+            err_dec = TrainingParams.gamma * rec_loss - gan_loss 
+            recon_loss_list.append(rec_loss.item())
+            optim_D.zero_grad()
+            err_dec.backward(retain_graph=True)
+            optim_D.step()
+            
+            rec_enc, mean, logvar = vae(datav)
+            x_l_tilda = discrim(rec_enc)[1]
+            x_l = discrim(datav)[1]
+            rec_loss = ((x_l_tilda - x_l) ** 2).mean()
+            prior_loss = 1 + logvar - mean.pow(2) - logvar.exp()
+            prior_loss = (-0.5 * torch.sum(prior_loss))/torch.numel(mean.data)
+            prior_loss_list.append(prior_loss.item())
+            err_enc = prior_loss + 5*rec_loss
+            
+            optim_E.zero_grad()
+            err_enc.backward(retain_graph=True)
+            optim_E.step()
+
 train_dataset = datasets.MNIST(root='./data', train = True, download = True, transform = ToTensor())
 train_dataloader = DataLoader(train_dataset, batch_size=TrainingParams.batch_size, shuffle=True)
 test_dataset = datasets.MNIST(root='./data', train = False, download = True, transform = ToTensor())
@@ -91,7 +162,13 @@ if __name__ == "__main__":
     elif sys.argv[1] == "gradient":
         vae_gradient = VariationalAutoencoder().to(device)
         train_vae(vae_gradient, train_dataloader, grad_noise=True, ng_stdev=TrainingParams.ng_stdev)
-        torch.save(vae_gradient,  os.path.join(Paths.model_dir, "vae_gradient.pt"))
+        torch.save(vae_gradient, os.path.join(Paths.model_dir, "vae_gradient.pt"))
+    elif sys.argv[1] == "gan":
+        vae_gan = VariationalAutoencoder().to(device)
+        discrim = Discriminator().to(device)
+        train_vae_gan(vae_gan, discrim, train_dataloader)
+        torch.save(vae_gan, os.path.join(Paths.model_dir, "vae_gan.pt"))
+        torch.save(discrim, os.path.join(Paths.model_dir, "discrim.pt"))
     else:
         raise Exception("Need to specify valid train type")
 

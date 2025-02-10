@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
-from config import Paths
+from config import Paths, Labels
 import torch
 import sys
 import os
@@ -15,43 +15,56 @@ def show_image(img):
     npimg = img.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
 
-if sys.argv[1] == "single":
-    generation = int(sys.argv[2])
-    suffix = sys.argv[3]
-    input_path = os.path.join(Paths.tensor_dir, f"samples_{suffix}.pt")
-    output_path = os.path.join(Paths.image_dir, f"gen{generation}_{suffix}.png")
+def label_suffix(suffix):
+    parts = suffix.split("_")
+    mod = parts[0]
+    if mod in Labels.param_prefixes.keys():
+        param = parts[1]
+        label = Labels.mod_labels[mod]
+        append = Labels.param_prefixes[mod] + param
+        return label + append
+    else:
+        return Labels.mod_labels[suffix]
 
-    samples = torch.load(input_path, map_location=torch.device('cpu'))
+if __name__ == "__main__":
 
-    plt.subplots(figsize=(5, 5))
-    show_image(make_grid(samples[generation],10,5))
+    if sys.argv[1] == "single":
+        generation = int(sys.argv[2])
+        suffix = sys.argv[3]
+        input_path = os.path.join(Paths.tensor_dir, f"samples_{suffix}.pt")
+        output_path = os.path.join(Paths.image_dir, f"gen{generation}_{suffix}.png")
 
-    plt.xticks([])
-    plt.yticks([])
-    plt.tight_layout()
+        samples = torch.load(input_path, map_location=torch.device('cpu'))
 
-    plt.savefig(output_path)
+        plt.subplots(figsize=(5, 5))
+        show_image(make_grid(samples[generation],10,5))
 
-elif sys.argv[1] == "loss_init":
-    output_name = sys.argv[2]
-    output_path = os.path.join(Paths.image_dir, f"loss_init_{output_name}.png")
+        plt.xticks([])
+        plt.yticks([])
+        plt.tight_layout()
 
-    yscale = sys.argv[3]
-    for i, suffix in enumerate(sys.argv[4:]):
-        input_path = os.path.join(Paths.tensor_dir, f"loss_{suffix}.pt")
-        loss = torch.load(input_path, map_location=torch.device('cpu'))
-        if i == 0:
-            baseline = loss[0].item()
-            plt.plot([baseline for _ in range(21)], label="baseline", linestyle="dashed")
-        plt.plot([l.item() for l in loss], label=suffix)
+        plt.savefig(output_path)
 
-    plt.legend()
-    plt.ylabel("Reconstruction Loss")
-    plt.xlabel("Generation")
-    plt.title("Generated Data Used as Input to Initial Model")
-    plt.xticks(range(0, 21))
-    plt.yscale(yscale)
+    elif sys.argv[1] == "loss_init":
+        output_name = sys.argv[2]
+        output_path = os.path.join(Paths.image_dir, f"loss_init_{output_name}.png")
 
-    plt.savefig(output_path)
+        yscale = sys.argv[3]
+        for i, suffix in enumerate(sys.argv[4:]):
+            input_path = os.path.join(Paths.tensor_dir, f"loss_{suffix}.pt")
+            loss = torch.load(input_path, map_location=torch.device('cpu'))
+            if i == 0:
+                baseline = loss[0].item()
+                plt.plot([baseline for _ in range(21)], label="baseline", linestyle="dashed")
+            plt.plot([l.item() for l in loss], label=label_suffix(suffix))
 
-print("Task complete.")
+        plt.legend()
+        plt.ylabel("Reconstruction Loss")
+        plt.xlabel("Generation")
+        plt.title("Generated Data Used as Input to Initial Model")
+        plt.xticks(range(0, 21))
+        plt.yscale(yscale)
+
+        plt.savefig(output_path)
+
+    print("Task complete.")

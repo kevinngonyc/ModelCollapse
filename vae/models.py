@@ -79,3 +79,21 @@ class NoisyLatentVariationalAutoencoder(nn.Module):
         else:
             return mu
 
+
+class Discriminator(nn.Module):
+    def __init__(self):
+        super(Discriminator, self).__init__()
+        c = TrainingParams.capacity
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=c, kernel_size=4, stride=2, padding=1) # out: c x 14 x 14
+        self.conv2 = nn.Conv2d(in_channels=c, out_channels=c*2, kernel_size=4, stride=2, padding=1) # out: c x 7 x 7
+        self.fc_z = nn.Linear(in_features=c*2*7*7, out_features=TrainingParams.latent_dims)
+        self.fc_y = nn.Linear(in_features=TrainingParams.latent_dims, out_features=1)
+
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        x = x.view(x.size(0), -1) # flatten batch of multi-channel feature maps to a batch of feature vectors
+        xl = x
+        z = F.relu(self.fc_z(x))
+        y = torch.sigmoid(self.fc_y(z))
+        return y, xl
