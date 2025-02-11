@@ -1,1 +1,13 @@
-srun: Step created for StepId=59740014.1
+usage: collapse.py [-h] [-p PARAMETER] [-g GENERATIONS]
+                   {input,no_noise,synthetic,latent,gradient,gan}
+
+positional arguments:
+  {input,no_noise,synthetic,latent,gradient,gan}
+                        mode of collapse
+
+options:
+  -h, --help            show this help message and exit
+  -p PARAMETER, --parameter PARAMETER
+                        parameter for {input, synthetic}
+  -g GENERATIONS, --generations GENERATIONS
+                        number of generations

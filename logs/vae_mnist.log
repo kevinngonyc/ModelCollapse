@@ -1,27 +1,33 @@
-Train Runtime: 130.20168709754944
-Train Runtime: 131.30119276046753
-Train Runtime: 133.89691472053528
-Train Runtime: 195.71900129318237
-Runtime: 27.025522708892822
-Runtime: 27.135114431381226
-Runtime: 27.16294264793396
-Runtime: 27.245813608169556
-srun: Step created for StepId=59911213.8
-srun: Step created for StepId=59911213.9
-srun: Step created for StepId=59911213.10
-srun: Step created for StepId=59911213.11
-Runtime: 25.086127758026123
-Runtime: 25.086090326309204
-Runtime: 25.29990553855896
-srun: Step created for StepId=59911213.12
-srun: Step created for StepId=59911213.13
-srun: Step created for StepId=59911213.14
-Runtime: 32.939698934555054
-srun: Step created for StepId=59911213.15
-Runtime: 24.575210571289062
-srun: Step created for StepId=59911213.16
-Runtime: 33.78507733345032
-Runtime: 34.03319692611694
-Runtime: 24.567346334457397
-Runtime: 80.63191151618958
-Submitted batch job 59911543
+Train Runtime: 127.90621757507324
+Train Runtime: 128.01790523529053
+Train Runtime: 130.28977298736572
+Train Runtime: 191.29811668395996
+Runtime: 25.072640657424927
+Runtime: 25.347103595733643
+srun: Step created for StepId=59923198.8
+srun: Step created for StepId=59923198.9
+Runtime: 33.19894361495972
+srun: Step created for StepId=59923198.10
+Runtime: 79.78285312652588
+srun: Step created for StepId=59923198.11
+Runtime: 81.95026707649231
+srun: Step created for StepId=59923198.12
+Runtime: 25.394428968429565
+srun: Step created for StepId=59923198.13
+Runtime: 25.054761171340942
+Runtime: 25.16622042655945
+srun: Step created for StepId=59923198.14
+srun: Step created for StepId=59923198.15
+Runtime: 24.984273672103882
+srun: Step created for StepId=59923198.16
+Runtime: 33.11635875701904
+srun: Step created for StepId=59923198.17
+Runtime: 24.95699691772461
+srun: Step created for StepId=59923198.18
+Runtime: 58.97986912727356
+srun: Step created for StepId=59923198.19
+Runtime: 25.032426357269287
+Runtime: 25.007525205612183
+Runtime: 32.82705783843994
+Runtime: 197.99146842956543
+Submitted batch job 59923349

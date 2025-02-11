@@ -7,6 +7,4 @@
 #SBATCH --job-name test
 #SBATCH --output logs/test.log 
 
-srun --exclusive -n 1 -c 1 sleep 5 &
-srun --exclusive -n 1 -c 1 sleep 5 &
-wait
+srun --exclusive -n 1 -c 1 python vae/collapse.py -h

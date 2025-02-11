@@ -1,10 +1,10 @@
 import time
-import sys
+import argparse
 import os
 import copy
 from utils import device, load_model, create_dataloader, combine_dataloader
 from train import train_vae, train_vae_gan, vae_loss, train_dataset
-from config import TrainingParams, Paths
+from config import TrainingParams, Paths, Labels
 import torch
 
 def record_values(vae_init, vae, samples, loss):
@@ -19,10 +19,10 @@ def record_values(vae_init, vae, samples, loss):
 
     return img_recon
 
-def collapse(vae_init, vae_start, samples, loss, noise_input=False, noise_stdev=1, syn_ratio=1.0, debug=False, discrim=None):
+def collapse(vae_init, vae_start, samples, loss, noise_input=False, noise_stdev=1, syn_ratio=1.0, debug=False, discrim=None, generations=TrainingParams.generations):
     vae = copy.deepcopy(vae_start).to(device)
 
-    for i in range(20):
+    for i in range(generations):
         if debug:
             print(f"Generation {i}")
 
@@ -44,40 +44,52 @@ def collapse(vae_init, vae_start, samples, loss, noise_input=False, noise_stdev=
     
     record_values(vae_init, vae, samples, loss)
 
-def collapse_and_save(vae_init, vae, suffix, noise_input=False, noise_stdev=1, syn_ratio=1.0, discrim=None):
+def collapse_and_save(vae_init, vae, suffix, noise_input=False, noise_stdev=1, syn_ratio=1.0, discrim=None, generations=TrainingParams.generations):
     samples = []
     loss = []
-    collapse(vae_init, vae, samples, loss, noise_input, noise_stdev, syn_ratio, discrim=discrim)
+    if generations != TrainingParams.generations:
+        suffix += f"_{generations}gen"
+    collapse(vae_init, vae, samples, loss, noise_input, noise_stdev, syn_ratio, discrim=discrim, generations=generations)
     torch.save(samples, os.path.join(Paths.tensor_dir, f"samples_{suffix}.pt"))
     torch.save(loss, os.path.join(Paths.tensor_dir, f"loss_{suffix}.pt"))
 
 if __name__=="__main__":
     start_time = time.time()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("mode", choices=Labels.mode_labels.keys(), help="mode of collapse")
+    param_modes = ", ".join(Labels.param_prefixes.keys())
+    parser.add_argument("-p", "--parameter", type=float, help=f"parameter for {{{param_modes}}}")
+    parser.add_argument("-g", "--generations", type=int, help=f"number of generations")
+    args = parser.parse_args()
+
     vae_init = load_model(os.path.join(Paths.model_dir, "vae_init.pt"))
 
-    if sys.argv[1] in ["input", "no_noise", "synthetic"]:
+    if args.mode in ["input", "nonoise", "synthetic"]:
         vae = vae_init
-    elif sys.argv[1] == "latent":
+    elif args.mode == "latent":
         vae = load_model(os.path.join(Paths.model_dir, "vae_latent.pt"))
-    elif sys.argv[1] == "gradient":
+    elif args.mode == "gradient":
         vae = load_model(os.path.join(Paths.model_dir, "vae_gradient.pt"))
-    elif sys.argv[1] == "gan":
+    elif args.mode == "gan":
         vae = load_model(os.path.join(Paths.model_dir, "vae_gan.pt"))
         discrim = load_model(os.path.join(Paths.model_dir, "discrim.pt"))
     else:
         raise Exception("Need to specify valid noise type")
 
-    if sys.argv[1] == "input" and sys.argv[2].replace('.','',1).isdigit():
-        noise_stdev = float(sys.argv[2])
-        suffix = f"{sys.argv[1]}_{sys.argv[2]}"
-        collapse_and_save(vae_init, vae, suffix, noise_input=True, noise_stdev=noise_stdev)
-    elif sys.argv[1] == "synthetic" and sys.argv[2].replace('.','',1).isdigit():
-        syn_ratio = float(sys.argv[2])
-        suffix = f"{sys.argv[1]}_{sys.argv[2]}"
-        collapse_and_save(vae_init, vae, suffix, syn_ratio=syn_ratio)
-    elif sys.argv[1] == "gan":
-        collapse_and_save(vae_init, vae, sys.argv[1], discrim=discrim)
+    generations = args.generations if args.generations is not None else TrainingParams.generations
+
+    if args.mode == "input":
+        noise_stdev = args.parameter if args.parameter is not None else 1
+        suffix = f"{args.mode}_{noise_stdev}"
+        collapse_and_save(vae_init, vae, suffix, noise_input=True, noise_stdev=noise_stdev, generations=generations)
+    elif args.mode == "synthetic":
+        syn_ratio = args.parameter if args.parameter is not None else 1.0
+        suffix = f"{args.mode}_{syn_ratio}"
+        collapse_and_save(vae_init, vae, suffix, syn_ratio=syn_ratio, generations=generations)
+    elif args.mode == "gan":
+        collapse_and_save(vae_init, vae, args.mode, discrim=discrim, generations=generations)
     else:
-        collapse_and_save(vae_init, vae, sys.argv[1])
+        collapse_and_save(vae_init, vae, args.mode, generations=generations)
 
     print(f"Runtime: {time.time() - start_time}")

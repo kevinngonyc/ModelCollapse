@@ -6,8 +6,8 @@ from torchvision.transforms import ToTensor
 import torch.nn.functional as F
 from utils import device
 import torch
-from config import TrainingParams, Paths
-import sys
+from config import TrainingParams, Paths, Labels
+import argparse
 import os
 from torch.autograd import Variable
 
@@ -151,19 +151,23 @@ test_dataloader = DataLoader(test_dataset, batch_size=TrainingParams.batch_size,
 if __name__ == "__main__":
     start_time = time.time()
 
-    if sys.argv[1] == "init":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("type", choices=Labels.model_types, help="model type")
+    args = parser.parse_args()
+
+    if args.type == "init":
         vae_init = VariationalAutoencoder().to(device)
         train_vae(vae_init, train_dataloader)
         torch.save(vae_init, os.path.join(Paths.model_dir, "vae_init.pt"))
-    elif sys.argv[1] == "latent":
+    elif args.type == "latent":
         vae_latent = NoisyLatentVariationalAutoencoder().to(device)
         train_vae(vae_latent, train_dataloader)
         torch.save(vae_latent, os.path.join(Paths.model_dir, "vae_latent.pt"))
-    elif sys.argv[1] == "gradient":
+    elif args.type == "gradient":
         vae_gradient = VariationalAutoencoder().to(device)
         train_vae(vae_gradient, train_dataloader, grad_noise=True, ng_stdev=TrainingParams.ng_stdev)
         torch.save(vae_gradient, os.path.join(Paths.model_dir, "vae_gradient.pt"))
-    elif sys.argv[1] == "gan":
+    elif args.type == "gan":
         vae_gan = VariationalAutoencoder().to(device)
         discrim = Discriminator().to(device)
         train_vae_gan(vae_gan, discrim, train_dataloader)

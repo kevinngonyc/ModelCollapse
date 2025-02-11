@@ -1,5 +1,3 @@
-from enum import Enum
-
 class TrainingParams:
     latent_dims = 20
     num_epochs = 30
@@ -12,6 +10,7 @@ class TrainingParams:
     gamma=15
     nl_stdev = 1
     ng_stdev = 100
+    generations = 20
 
 class Paths:
     model_dir = "vae/outputs/models/"
@@ -19,9 +18,9 @@ class Paths:
     image_dir = "vae/images/"
 
 class Labels:
-    mod_labels = {
+    mode_labels = {
         "input": "input noise",
-        "no_noise": "without noise",
+        "nonoise": "without noise",
         "synthetic": "real data mix",
         "latent": "latent noise",
         "gradient": "gradient noise",
@@ -31,3 +30,5 @@ class Labels:
         "input": ", stdev=", 
         "synthetic": ", synthetic ratio="
     }
+    model_types = ["init", "latent", "gradient", "gan"]
+    viz_types = ["single", "loss_init"]
