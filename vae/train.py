@@ -74,7 +74,7 @@ def train_vae(vae, train_dataloader, grad_noise=False, ng_stdev=1, debug=False):
             print('Epoch [%d / %d] average reconstruction error: %f' % (epoch+1, TrainingParams.num_epochs, train_loss_avg[-1]))
 
 
-def train_vae_gan(vae, discrim, train_dataloader, debug=False):
+def train_vae_gan(vae, discrim, train_dataloader, multiclass=False, debug=False):
     criterion=torch.nn.BCELoss().to(device)
     optim_E=torch.optim.RMSprop(vae.encoder.parameters(), lr=TrainingParams.learning_rate)
     optim_D=torch.optim.RMSprop(vae.decoder.parameters(), lr=TrainingParams.learning_rate)
@@ -85,12 +85,19 @@ def train_vae_gan(vae, discrim, train_dataloader, debug=False):
             print(f"Epoch: {epoch}")
         prior_loss_list,gan_loss_list,recon_loss_list=[],[],[]
         dis_real_list,dis_fake_list,dis_prior_list=[],[],[]
-        for i, (data,_) in enumerate(train_dataloader, 0):
+        for i, (data,targets) in enumerate(train_dataloader, 0):
             bs=data.size()[0]
-            
-            ones_label=Variable(torch.ones(bs,1)).to(device)
-            zeros_label=Variable(torch.zeros(bs,1)).to(device)
-            zeros_label1=Variable(torch.zeros(64,1)).to(device)
+            if multiclass:
+                if len(targets.shape) == 1:
+                    ones_label=Variable(F.one_hot(targets)).float().to(device)
+                else:
+                    ones_label=Variable(targets).to(device)
+                zeros_label=Variable(torch.zeros(bs,10)).to(device)
+                zeros_label1=Variable(torch.zeros(64,10)).to(device)
+            else:
+                ones_label=Variable(torch.ones(bs,1)).to(device)
+                zeros_label=Variable(torch.zeros(bs,1)).to(device)
+                zeros_label1=Variable(torch.zeros(64,1)).to(device)
             datav = Variable(data).to(device)
             rec_enc, mean, logvar = vae(datav)
             z_p = Variable(torch.randn(64,TrainingParams.latent_dims)).to(device)

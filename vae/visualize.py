@@ -80,7 +80,7 @@ if __name__ == "__main__":
         plt.ylabel("Reconstruction Loss")
         plt.xlabel("Generation")
         plt.title("Generated Data Used as Input to Initial Model")
-        plt.xticks(range(0, generations + 1))
+        plt.xticks(range(0, generations + 1, (generations + 10) // 20))
         plt.yscale(yscale)
 
         plt.savefig(output_path)

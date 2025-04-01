@@ -15,8 +15,11 @@ def partition_dataset(dataset, size):
     x, y = [d.to(device) for d in next(iter(dataloader))]
     return TensorDataset(x, y)
 
-def create_dataloader(tensor, size, batch_size):
-    dataset = TensorDataset(tensor, torch.zeros(size).to(device))
+def create_dataloader(tensor, size, batch_size, targets=None):
+    if targets is not None:
+        dataset = TensorDataset(tensor, targets)
+    else:
+        dataset = TensorDataset(tensor, torch.zeros(size).to(device))
     return DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 def combine_dataloader(tensor_a, dataset_b, size, batch_size, ab_ratio):

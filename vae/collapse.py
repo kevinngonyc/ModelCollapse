@@ -7,7 +7,7 @@ from train import train_vae, train_vae_gan, vae_loss, train_dataset
 from config import TrainingParams, Paths, Labels
 import torch
 
-def record_values(vae_init, vae, samples, loss):
+def record_values(vae_init, vae, samples, loss, discrim=None):
     latent = torch.randn(TrainingParams.collapse_size, TrainingParams.latent_dims, device=device)
     
     # reconstruct images from the latent vectors
@@ -17,16 +17,21 @@ def record_values(vae_init, vae, samples, loss):
     x_recon, latent_mu, latent_logvar = vae_init(img_recon)
     loss.append(vae_loss(x_recon, img_recon, latent_mu, latent_logvar))
 
-    return img_recon
+    targets = None
+    if discrim is not None:
+        y, _ = discrim(img_recon)
+        targets = y.clone().detach().to(device)
 
-def collapse(vae_init, vae_start, samples, loss, noise_input=False, noise_stdev=1, syn_ratio=1.0, debug=False, discrim=None, generations=TrainingParams.generations):
+    return img_recon, targets
+
+def collapse(vae_init, vae_start, samples, loss, noise_input=False, noise_stdev=1, syn_ratio=1.0, debug=False, discrim=None, multiclass=False, generations=TrainingParams.generations):
     vae = copy.deepcopy(vae_start).to(device)
 
     for i in range(generations):
         if debug:
             print(f"Generation {i}")
 
-        img_recon = record_values(vae_init, vae, samples, loss)
+        img_recon, targets = record_values(vae_init, vae, samples, loss, discrim=discrim)
 
         if noise_input:
             img_recon = torch.add(img_recon, torch.randn(TrainingParams.collapse_size, 1, 28, 28, device=device) * noise_stdev)
@@ -34,11 +39,13 @@ def collapse(vae_init, vae_start, samples, loss, noise_input=False, noise_stdev=
 
         if syn_ratio < 1.0 and syn_ratio > 0:
             train_dataloader = combine_dataloader(img_recon, train_dataset, TrainingParams.collapse_size, TrainingParams.batch_size, syn_ratio)
+        elif multiclass:
+            train_dataloader = create_dataloader(img_recon, TrainingParams.collapse_size, TrainingParams.batch_size, targets=targets)
         else:
             train_dataloader = create_dataloader(img_recon, TrainingParams.collapse_size, TrainingParams.batch_size)
 
         if discrim is not None:
-            train_vae_gan(vae, discrim, train_dataloader)
+            train_vae_gan(vae, discrim, train_dataloader, multiclass=multiclass)
         else:
             train_vae(vae, train_dataloader)
     
