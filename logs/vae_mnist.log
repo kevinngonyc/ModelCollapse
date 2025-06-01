@@ -1,33 +1,107 @@
-Train Runtime: 127.90621757507324
-Train Runtime: 128.01790523529053
-Train Runtime: 130.28977298736572
-Train Runtime: 191.29811668395996
-Runtime: 25.072640657424927
-Runtime: 25.347103595733643
-srun: Step created for StepId=59923198.8
-srun: Step created for StepId=59923198.9
-Runtime: 33.19894361495972
-srun: Step created for StepId=59923198.10
-Runtime: 79.78285312652588
-srun: Step created for StepId=59923198.11
-Runtime: 81.95026707649231
-srun: Step created for StepId=59923198.12
-Runtime: 25.394428968429565
-srun: Step created for StepId=59923198.13
-Runtime: 25.054761171340942
-Runtime: 25.16622042655945
-srun: Step created for StepId=59923198.14
-srun: Step created for StepId=59923198.15
-Runtime: 24.984273672103882
-srun: Step created for StepId=59923198.16
-Runtime: 33.11635875701904
-srun: Step created for StepId=59923198.17
-Runtime: 24.95699691772461
-srun: Step created for StepId=59923198.18
-Runtime: 58.97986912727356
-srun: Step created for StepId=59923198.19
-Runtime: 25.032426357269287
-Runtime: 25.007525205612183
-Runtime: 32.82705783843994
-Runtime: 197.99146842956543
-Submitted batch job 59923349
+Generation 0
+Generation 1
+Generation 2
+Generation 3
+Generation 4
+Generation 5
+Generation 6
+Generation 7
+Generation 8
+Generation 9
+Generation 10
+Generation 11
+Generation 12
+Generation 13
+Generation 14
+Generation 15
+Generation 16
+Generation 17
+Generation 18
+Generation 19
+Generation 20
+Generation 21
+Generation 22
+Generation 23
+Generation 24
+Generation 25
+Generation 26
+Generation 27
+Generation 28
+Generation 29
+Generation 30
+Generation 31
+Generation 32
+Generation 33
+Generation 34
+Generation 35
+Generation 36
+Generation 37
+Generation 38
+Generation 39
+Generation 40
+Generation 41
+Generation 42
+Generation 43
+Generation 44
+Generation 45
+Generation 46
+Generation 47
+Generation 48
+Generation 49
+Runtime: 3072.7595217227936
+Generation 0
+Generation 1
+Generation 2
+Generation 3
+Generation 4
+Generation 5
+Generation 6
+Generation 7
+Generation 8
+Generation 9
+Generation 10
+Generation 11
+Generation 12
+Generation 13
+Generation 14
+Generation 15
+Generation 16
+Generation 17
+Generation 18
+Generation 19
+Generation 20
+Generation 21
+Generation 22
+Generation 23
+Generation 24
+Generation 25
+Generation 26
+Generation 27
+Generation 28
+Generation 29
+Generation 30
+Generation 31
+Generation 32
+Generation 33
+Generation 34
+Generation 35
+Generation 36
+Generation 37
+Generation 38
+Generation 39
+Generation 40
+Generation 41
+Generation 42
+Generation 43
+Generation 44
+Generation 45
+Generation 46
+Generation 47
+Generation 48
+Generation 49
+Runtime: 3096.4767162799835
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd-a100-4024: error: *** STEP 62792558.2 ON a100-4024 CANCELLED AT 2025-04-01T16:39:31 DUE TO TIME LIMIT ***
+slurmstepd-a100-4024: error: *** STEP 62792558.3 ON a100-4024 CANCELLED AT 2025-04-01T16:39:31 DUE TO TIME LIMIT ***
+slurmstepd-a100-4024: error: *** JOB 62792558 ON a100-4024 CANCELLED AT 2025-04-01T16:39:31 DUE TO TIME LIMIT ***

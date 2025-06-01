@@ -97,3 +97,94 @@ class Discriminator(nn.Module):
         z = F.relu(self.fc_z(x))
         y = torch.sigmoid(self.fc_y(z))
         return y, xl
+    
+class VQEncoder(nn.Module):
+    def __init__(self):
+        super(VQEncoder, self).__init__()
+        c = TrainingParams.capacity
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=c, kernel_size=4, stride=2, padding=1) # out: c x 14 x 14
+        self.conv2 = nn.Conv2d(in_channels=c, out_channels=TrainingParams.latent_dims, kernel_size=4, stride=2, padding=1) # out: c x 7 x 7
+        
+    def forward(self, x):
+        x = F.relu(self.conv1(x))
+        x = F.relu(self.conv2(x))
+        return x
+
+class VQDecoder(nn.Module):
+    def __init__(self):
+        super(VQDecoder, self).__init__()
+        c = TrainingParams.capacity
+        self.conv2 = nn.ConvTranspose2d(in_channels=TrainingParams.latent_dims, out_channels=c, kernel_size=4, stride=2, padding=1)
+        self.conv1 = nn.ConvTranspose2d(in_channels=c, out_channels=1, kernel_size=4, stride=2, padding=1)
+
+    def forward(self, x):
+        x = F.relu(self.conv2(x))
+        x = torch.sigmoid(self.conv1(x)) # last layer before output is sigmoid, since we are using BCE as reconstruction loss
+        return x
+
+class VQVariationalAutoencoder(nn.Module):
+    def __init__(self):
+        super(VQVariationalAutoencoder, self).__init__()
+        self.encoder = VQEncoder()
+        self.decoder = VQDecoder()
+        self.vq = VectorQuantizer()
+
+    def forward(self, x):
+        latent = self.encoder(x)
+        vq_loss, encoding_indices, quantized = self.vq(latent)
+        x_recon = self.decoder(quantized)
+        return vq_loss, encoding_indices, x_recon
+
+    def latent_sample(self, mu, logvar, sampleme=False):
+        if self.training or sampleme:
+            # the reparameterization trick
+            std = logvar.mul(0.5).exp_()
+            eps = torch.empty_like(std).normal_()
+            return eps.mul(std).add_(mu)
+        else:
+            return mu
+
+class VectorQuantizer(nn.Module):
+    def __init__(self):
+        super(VectorQuantizer, self).__init__()
+        self.codebook = nn.Embedding(num_embeddings=TrainingParams.K_vecs, embedding_dim=TrainingParams.latent_dims)
+        self.embedding_dim = TrainingParams.latent_dims
+
+    def forward(self, x):
+        x = x.permute(0, 2, 3, 1).contiguous()
+        input_shape = x.shape
+
+        flat_input = x.view(-1, 1, self.embedding_dim)
+
+        distances = (flat_input - self.codebook.weight.unsqueeze(0)).pow(2).mean(2)
+
+        encoding_indices = torch.argmin(distances, dim=1).unsqueeze(1)
+
+        quantized = self.codebook(encoding_indices).view(input_shape)
+
+        codebook_loss = F.mse_loss(quantized, x.detach())
+        commitment_loss = F.mse_loss(quantized.detach(), x)
+        loss = codebook_loss + TrainingParams.beta * commitment_loss
+
+        if self.training:
+            quantized = x + (quantized - x).detach()
+
+        return loss, encoding_indices, quantized.permute(0, 3, 1, 2).contiguous()
+    
+class LSTM(nn.Module):
+    def __init__(self):
+        super(LSTM, self).__init__()
+        self.embedding = nn.Embedding(num_embeddings=TrainingParams.K_vecs+1, embedding_dim=TrainingParams.latent_dims)
+        self.lstm = nn.LSTM(input_size=TrainingParams.latent_dims, hidden_size=TrainingParams.lstm_dims, batch_first=True)
+        self.fc1 = nn.Linear(TrainingParams.lstm_dims, TrainingParams.lstm_dims // 4)
+        self.fc2 = nn.Linear(TrainingParams.lstm_dims // 4, TrainingParams.K_vecs+1)
+        self.softmax = nn.Softmax(dim=-1)
+
+    def forward(self, x):
+        x = self.embedding(x)
+        logits, _ = self.lstm(x)
+        logits = F.relu(self.fc1(logits))
+        logits = self.fc2(logits)
+        logits = logits[:, -1, :]
+        out = self.softmax(logits)
+        return logits, out

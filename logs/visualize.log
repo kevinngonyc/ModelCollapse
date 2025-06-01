@@ -1,3 +1,9 @@
+Traceback (most recent call last):
+  File "/gpfs/data/oermannlab/users/ngok02/ModelCollapse/vae/visualize.py", line 77, in <module>
+    plt.plot([l.item() for l in loss], label=label_suffix(suffix))
+  File "/gpfs/data/oermannlab/users/ngok02/ModelCollapse/vae/visualize.py", line 21, in label_suffix
+    label = Labels.mode_labels[mode]
+KeyError: 'vqvae'
 Task complete.
 Task complete.
 Task complete.
@@ -6,20 +12,4 @@ Task complete.
 Task complete.
 Task complete.
 Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
-Task complete.
+srun: error: cn-0027: task 0: Exited with exit code 1

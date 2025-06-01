@@ -12,29 +12,38 @@ module load cuda/11.8
 source /gpfs/share/apps/miniconda3/gpu/4.9.2/etc/profile.d/conda.sh # line to include
 conda activate ModelCollapse
 
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 0 nonoise &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 nonoise &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 input_0.01 &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 latent &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 gradient &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 synthetic_0.9 &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 synthetic_0.95 &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 synthetic_0.99 &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 gan &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 nonoise &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 input_0.01 &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 latent &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 gradient &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 synthetic_0.9 &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 synthetic_0.95 &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 synthetic_0.99 &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 gan &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 50 synthetic_0.9_50gen &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 50 gan_50gen &
-srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 50 nonoise_50gen &
-srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init input_high_std -y log -i nonoise input_1.0 input_0.1 input_0.01 &
-srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init input_low_std -i nonoise input_0.001 input_0.0001 input_1e-05 &
-srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init noises -i nonoise input_0.01 gradient latent &
-srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init synthetic -i nonoise synthetic_0.9 synthetic_0.95 synthetic_0.99 gan &
-srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init 50gen -i nonoise_50gen synthetic_0.9_50gen gan_50gen &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 0 nonoise &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 nonoise &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 input_0.01 &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 latent &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 gradient &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 synthetic_0.9 &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 synthetic_0.95 &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 synthetic_0.99 &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 10 gan &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 nonoise &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 input_0.01 &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 latent &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 gradient &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 synthetic_0.9 &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 synthetic_0.95 &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 synthetic_0.99 &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 gan &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 50 synthetic_0.9_50gen &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 50 gan_50gen &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 50 nonoise_50gen &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init input_high_std -y log -i nonoise input_1.0 input_0.1 input_0.01 &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init input_low_std -i nonoise input_0.001 input_0.0001 input_1e-05 &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init noises -i nonoise input_0.01 gradient latent &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init synthetic -i nonoise synthetic_0.9 synthetic_0.95 synthetic_0.99 gan &
+# srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init 50gen -i nonoise_50gen synthetic_0.9_50gen gan_50gen &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 50 vqvae &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 50 vqvae_lstm &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 50 vqvae_codebook &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 50 vqvae_lstm_codebook &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 vqvae &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 vqvae_lstm &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 vqvae_codebook &
+srun --exclusive -n 1 -c 1 python vae/visualize.py single -g 20 vqvae_lstm_codebook &
+srun --exclusive -n 1 -c 1 python vae/visualize.py loss_init vqvae -i nonoise gan vqvae vqvae_lstm vqvae_codebook vqvae_lstm_codebook &
 wait

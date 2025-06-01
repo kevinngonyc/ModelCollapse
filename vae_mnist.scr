@@ -14,28 +14,33 @@ module load cuda/11.8
 source /gpfs/share/apps/miniconda3/gpu/4.9.2/etc/profile.d/conda.sh # line to include
 conda activate ModelCollapse
 
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/train.py init &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/train.py latent &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/train.py gradient &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/train.py gan &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/train.py init &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/train.py latent &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/train.py gradient &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/train.py gan &
+srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/train.py vqvae
 wait
 
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py nonoise &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 1 &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 0.1 &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 0.01 &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 0.001 &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 0.0001 &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 0.00001 &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py latent &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py gradient &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py synthetic -p 0.9 &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py synthetic -p 0.95 &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py synthetic -p 0.99 &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py gan &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py nonoise -g 50 &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py synthetic -p 0.9 -g 50 &
-srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py gan -g 50 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py nonoise &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 1 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 0.1 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 0.01 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 0.001 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 0.0001 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py input -p 0.00001 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py latent &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py gradient &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py synthetic -p 0.9 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py synthetic -p 0.95 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py synthetic -p 0.99 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py gan &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py nonoise -g 50 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py synthetic -p 0.9 -g 50 &
+# srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py gan -g 50 &
+srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py vqvae -g 50 &
+srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py vqvae_lstm -g 50 &
+srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py vqvae_codebook -g 50 &
+srun --exclusive -n 1 -c 1 --gres=gpu:1 python vae/collapse.py vqvae_lstm_codebook -g 50 &
 wait
 
 sbatch visualize.scr

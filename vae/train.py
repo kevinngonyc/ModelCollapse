@@ -1,5 +1,5 @@
 import time
-from models import VariationalAutoencoder, NoisyLatentVariationalAutoencoder, Discriminator
+from models import LSTM, VQVariationalAutoencoder, VariationalAutoencoder, NoisyLatentVariationalAutoencoder, Discriminator
 from torchvision import datasets
 from torch.utils.data import DataLoader
 from torchvision.transforms import ToTensor
@@ -29,6 +29,9 @@ def vae_loss(recon_x, x, mu, logvar):
 
     return recon_loss + TrainingParams.variational_beta * kldivergence
 
+def vqvae_loss(x, recon_x, vq_loss):
+    recon_loss = F.mse_loss(recon_x, x)
+    return recon_loss + vq_loss
 
 def train_vae(vae, train_dataloader, grad_noise=False, ng_stdev=1, debug=False):
     vae = vae.to(device)
@@ -50,20 +53,19 @@ def train_vae(vae, train_dataloader, grad_noise=False, ng_stdev=1, debug=False):
         for image_batch, _ in train_dataloader:
             image_batch = image_batch.to(device)
 
-            # vae reconstruction
-            image_batch_recon, latent_mu, latent_logvar = vae(image_batch)
+            if isinstance(vae, VQVariationalAutoencoder):
+                vq_loss, _, image_batch_recon = vae(image_batch)
+                loss = vqvae_loss(image_batch, image_batch_recon, vq_loss)
+            else:
+                image_batch_recon, latent_mu, latent_logvar = vae(image_batch)
+                loss = vae_loss(image_batch_recon, image_batch, latent_mu, latent_logvar)
 
-            # reconstruction error
-            loss = vae_loss(image_batch_recon, image_batch, latent_mu, latent_logvar)
-
-            # backpropagation
             optimizer.zero_grad()
             loss.backward()
             if grad_noise:
                 for p in vae.parameters():
                     p.grad = p.grad + torch.randn_like(p.grad) * ng_stdev
 
-            # one step of the optmizer (using the gradients from backpropagation)
             optimizer.step()
 
             train_loss_avg[-1] += loss.item()
@@ -150,6 +152,63 @@ def train_vae_gan(vae, discrim, train_dataloader, multiclass=False, debug=False)
             err_enc.backward(retain_graph=True)
             optim_E.step()
 
+def train_lstm(vae, lstm, train_dataloader, debug=False):
+    vae = vae.to(device)
+    lstm = lstm.to(device)
+
+    if debug:
+        num_params = sum(p.numel() for p in lstm.parameters() if p.requires_grad)
+        print('Number of parameters: %d' % num_params)
+
+    optimizer = torch.optim.Adam(params=lstm.parameters(), lr=TrainingParams.learning_rate, weight_decay=1e-5)
+
+    lstm.train()
+
+    train_loss_avg = []
+
+    if debug:
+        print('Training ...')
+    for epoch in range(TrainingParams.num_epochs):
+        train_loss_avg.append(0)
+        num_batches = 0
+        
+        for image_batch, _ in train_dataloader:
+
+            image_batch = image_batch.to(device)
+
+            # vae reconstruction
+            _, encoding_indices, _ = vae(image_batch)
+
+            encoding_indices = encoding_indices.view((image_batch.shape[0], -1)).detach()
+            B, L = encoding_indices.shape
+
+            sos = TrainingParams.K_vecs * torch.ones(B, 1).long().to(device)
+
+            encoding_indices = torch.cat((sos, encoding_indices), dim=1)
+
+            for i in range(1, L+1):
+                input_sequence = encoding_indices[:,:i]
+                target = encoding_indices[:,i]
+                target = F.one_hot(target, num_classes=TrainingParams.K_vecs+1).float()
+
+                logits, _ = lstm(input_sequence)
+
+                loss = F.cross_entropy(logits, target)
+
+                # backpropagation
+                optimizer.zero_grad()
+                loss.backward()
+    
+                # one step of the optmizer (using the gradients from backpropagation)
+                optimizer.step()
+    
+                train_loss_avg[-1] += loss.item()
+                num_batches += 1
+
+        train_loss_avg[-1] /= num_batches
+        if debug:
+            print('Epoch [%d / %d] average reconstruction error: %f' % (epoch+1, TrainingParams.num_epochs, train_loss_avg[-1]))
+
 train_dataset = datasets.MNIST(root='./data', train = True, download = True, transform = ToTensor())
 train_dataloader = DataLoader(train_dataset, batch_size=TrainingParams.batch_size, shuffle=True)
 test_dataset = datasets.MNIST(root='./data', train = False, download = True, transform = ToTensor())
@@ -180,6 +239,13 @@ if __name__ == "__main__":
         train_vae_gan(vae_gan, discrim, train_dataloader)
         torch.save(vae_gan, os.path.join(Paths.model_dir, "vae_gan.pt"))
         torch.save(discrim, os.path.join(Paths.model_dir, "discrim.pt"))
+    elif args.type == "vqvae":
+        vqvae = VQVariationalAutoencoder().to(device)
+        train_vae(vqvae, train_dataloader)
+        torch.save(vqvae, os.path.join(Paths.model_dir, "vqvae.pt"))
+        lstm = LSTM().to(device)
+        train_lstm(vqvae, lstm, train_dataloader)
+        torch.save(lstm, os.path.join(Paths.model_dir, "lstm.pt"))
     else:
         raise Exception("Need to specify valid train type")
 
